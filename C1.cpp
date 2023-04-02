@@ -20,6 +20,10 @@ const int OPENING_TIME_INDEX = 1;
 const int CLOSING_TIME_INDEX = 2;
 const int RANK_INDEX = 3;
 
+struct WorkingHours{
+  int open_time, close_time;
+};
+
 vector<int> Open_times;
 vector<int> Close_times;
 
@@ -343,19 +347,30 @@ void print_output(vector<vector<string>> result) {
   }
 }
 
-vector<Locations> read_from_file(string file_name) {
-  // this function reads input from a file
+string read_line(ifstream& file){
+  string res;
+  getline(file, res);
+  return res;
+}
 
-  ifstream file(file_name);
-  string temp_str;
-  getline(file, temp_str);
-
-  vector<string> splitted_firstline;
+vector < string > split_by_comma(string inp){
+  vector<string> ans;
   string token;
-  stringstream S(temp_str);
+  stringstream S(inp);
   while (getline(S, token, ','))
-    splitted_firstline.push_back(token);
+    ans.push_back(token);
+  return ans;
+}
 
+vector < string > handle_first_line(ifstream& file){
+  string first_line = read_line(file);
+  return split_by_comma(first_line);
+} 
+
+vector<Locations> read_from_file(string file_name) {
+  ifstream file(file_name);
+  vector<string> splitted_firstline = handle_first_line(file);
+  
   vector<int> arrangment = arrangment_function(splitted_firstline);
   vector<string> primitive_get = read_locations_data(file_name);
   vector<vector<string>> splitted_input = split_input(primitive_get);
