@@ -42,7 +42,7 @@ struct Location {
 typedef vector<Location> LocationList;
 
 int searcher(vector<string> vec, string element) {
-  for (int i = 0; i < vec.size(); i++) {
+  for (int i = 0; i < (int)vec.size(); i++) {
     if (vec[i] == element)
       return i;
   }
@@ -67,7 +67,6 @@ vector<string> read_Location_data(string file_name) {
   getline(file, first_line);
   while (getline(file, temp_str))
     input_strings.push_back(temp_str);
-
   return input_strings;
 }
 
@@ -138,7 +137,7 @@ int find_min(vector<int> vec) {
     return vec[0];
 }
 bool int_finder(vector<int> vec, int element) {
-  for (int i = 0; i < vec.size(); i++) {
+  for (int i = 0; i < (int)vec.size(); i++) {
     if (vec[i] == element)
       return true;
   }
@@ -161,7 +160,7 @@ void find_suitable_indexs(LocationList input, int nearest_time,
 }
 
 int match_num_rank(LocationList input, int rank) {
-  for (int i = 0; i < input.size(); i++) {
+  for (int i = 0; i < (int)input.size(); i++) {
     if (input[i].rank == rank)
       return i;
   }
@@ -207,7 +206,7 @@ vector<int> find_open_Location(TimeList times, int current_time,
 }
 int find_nearest(int current_time, vector<int> opentimes) {
   vector<int> late_opentimes;
-  for (int i = 0; i < opentimes.size(); i++) {
+  for (int i = 0; i < (int)opentimes.size(); i++) {
     if (opentimes[i] > current_time) {
       late_opentimes.push_back(opentimes[i]);
     }
@@ -216,7 +215,7 @@ int find_nearest(int current_time, vector<int> opentimes) {
   return min;
 }
 
-bool cmp_by_op(WorkingHours a, WorkingHours b) {
+bool compare_by_open_time(WorkingHours a, WorkingHours b) {
   return a.open_time < b.open_time;
 }
 
@@ -232,7 +231,7 @@ int find_next_destination_index(int &current_time, TimeList times,
     // we stay in this while till suitable indexes is empty
     suitable_indexs.clear();
     if (current_time >=
-            min_element(times.begin(), times.end(), cmp_by_op)->open_time &&
+            min_element(times.begin(), times.end(), compare_by_open_time)->open_time &&
         counter < len) {
       suitable_indexs = find_open_Location(times, current_time, location_check,
                                             unsuitable_indexs);
@@ -255,7 +254,6 @@ int find_next_destination_index(int &current_time, TimeList times,
       break;
     }
   }
-
   return index;
 }
 
@@ -278,14 +276,14 @@ int find_max(TimeList times, int order) {
 }
 
 int existence_check(vector<int> location_check, int index) {
-  for (int i = 0; i < location_check.size(); i++) {
+  for (int i = 0; i < (int)location_check.size(); i++) {
     if (location_check[i] == index)
       return i;
   }
   return -1;
 }
 
-bool cmp_by_ed(WorkingHours a, WorkingHours b) {
+bool compare_by_end_time(WorkingHours a, WorkingHours b) {
   return a.close_time < b.close_time;
 }
 
@@ -296,7 +294,7 @@ void process_input(int current_time, LocationList input,
   vector<int> not_suitables;
   int counter = 0;
   while (current_time <
-             max_element(times.begin(), times.end(), cmp_by_ed)->close_time &&
+             max_element(times.begin(), times.end(), compare_by_end_time)->close_time &&
          counter < size) {
     int index = find_next_destination_index(current_time, times, input,
                                             location_check, not_suitables);
@@ -336,7 +334,7 @@ Table generate_output(LocationList input,
                                                    vector<int> &start,
                                                    vector<int> &durations) {
   Table result;
-  for (int i = 0; i < location_check.size(); i++) {
+  for (int i = 0; i < (int)location_check.size(); i++) {
     int end = calculate_endtime(start[i], durations[i]);
     string standard_start = convert_int_to_clockform(start[i]);
     string standard_end = convert_int_to_clockform(end);
@@ -348,7 +346,7 @@ Table generate_output(LocationList input,
 }
 
 void print_output(Table result) {
-  for (int i = 0; i < result.size(); i++) {
+  for (int i = 0; i < (int)result.size(); i++) {
     cout << "Location " << result[i][LOCATION_NAME_INDEX] << endl
          << "Visit from " << result[i][OPENING_TIME_INDEX] << " until "
          << result[i][CLOSING_TIME_INDEX] << endl
@@ -393,7 +391,6 @@ LocationList read_input(string file_name,
 }
 
 int main(int argc, char *argv[]) {
-
   vector<int> gone_location;
   vector<int> start_times;
   vector<int> durations;
@@ -403,7 +400,6 @@ int main(int argc, char *argv[]) {
                  times);
   process_input(START_TIME, location_data, gone_location, start_times,
                         durations, times);
-
   Table output = generate_output(
       location_data, gone_location, start_times, durations);
   print_output(output);
