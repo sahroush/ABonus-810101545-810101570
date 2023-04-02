@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <algorithm>  
 #include <vector>
 
 using namespace std;
@@ -21,11 +21,11 @@ const int OPENING_TIME_INDEX = 1;
 const int CLOSING_TIME_INDEX = 2;
 const int RANK_INDEX = 3;
 
-struct WorkingHours{
+struct WorkingHours {
   int open_time, close_time;
 };
 
-typedef vector < WorkingHours > TimeList;
+typedef vector<WorkingHours> TimeList;
 
 struct Locations {
   int number;
@@ -33,8 +33,9 @@ struct Locations {
   int opening_time;
   int closing_time;
   int rank;
-  Locations(int number, string name, WorkingHours wh, int rank):
-    number(number), name(name), opening_time(wh.open_time), closing_time(wh.close_time), rank(rank){};
+  Locations(int number, string name, WorkingHours wh, int rank)
+      : number(number), name(name), opening_time(wh.open_time),
+        closing_time(wh.close_time), rank(rank){};
 };
 
 int searcher(vector<string> vec, string element) {
@@ -83,7 +84,7 @@ vector<vector<string>> split_input(vector<string> input_strings) {
   return input_table;
 }
 
-int get_time(string time_str){
+int get_time(string time_str) {
   stringstream sstr(time_str);
   vector<int> temp;
   string token;
@@ -97,24 +98,24 @@ int get_time(string time_str){
   return res;
 }
 
-TimeList create_time_vector(vector<vector<string>> input_table, int starting_time_id, int finishing_time_id) {
+TimeList create_time_vector(vector<vector<string>> input_table,
+                            int starting_time_id, int finishing_time_id) {
   TimeList result;
   int location_number = input_table.size();
   for (int i = 0; i < location_number; i++) {
-    result.push_back({get_time(input_table[i][starting_time_id]), get_time(input_table[i][finishing_time_id])});
+    result.push_back({get_time(input_table[i][starting_time_id]),
+                      get_time(input_table[i][finishing_time_id])});
   }
   return result;
 }
 
 vector<Locations> make_locations(vector<vector<string>> input_table,
-                                      TimeList times,
-                                      vector<int> title_arrangment) {
+                                 TimeList times, vector<int> title_arrangment) {
   vector<Locations> input_structs;
   int location_count = input_table.size();
   for (int i = 0; i < location_count; i++) {
     input_structs.push_back(
-        {i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]],
-         times[i],
+        {i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]], times[i],
          stoi(input_table[i][title_arrangment[RANK_INDEX]])});
   }
   return input_structs;
@@ -215,7 +216,7 @@ int find_nearest(int current_time, vector<int> opentimes) {
   return min;
 }
 
-bool cmp_by_op(WorkingHours a, WorkingHours b){
+bool cmp_by_op(WorkingHours a, WorkingHours b) {
   return a.open_time < b.open_time;
 }
 
@@ -230,9 +231,11 @@ int find_next_destination_index(int &current_time, TimeList times,
   while (true) {
     // we stay in this while till suitable indexes is empty
     suitable_indexs.clear();
-    if (current_time >= min_element(times.begin(), times.end(), cmp_by_op)->open_time && counter < len) {
-      suitable_indexs = find_open_locations(times, current_time,
-                                            location_check, unsuitable_indexs);
+    if (current_time >=
+            min_element(times.begin(), times.end(), cmp_by_op)->open_time &&
+        counter < len) {
+      suitable_indexs = find_open_locations(times, current_time, location_check,
+                                            unsuitable_indexs);
       counter += 1;
     } else {
       vector<int> late_opentimes;
@@ -240,7 +243,8 @@ int find_next_destination_index(int &current_time, TimeList times,
         if (times[i].open_time > current_time)
           late_opentimes.push_back(times[i].open_time);
       }
-      int nearest_time = *min_element(late_opentimes.begin(), late_opentimes.end());
+      int nearest_time =
+          *min_element(late_opentimes.begin(), late_opentimes.end());
       find_suitable_indexs(input, nearest_time, location_check, suitable_indexs,
                            unsuitable_indexs);
       current_time = nearest_time;
@@ -266,8 +270,9 @@ int check_destination_wellness(vector<Locations> input, int current_time,
 
 int find_max(TimeList times, int order) {
   int mx = -100;
-  for (WorkingHours wh : times){
-    mx = max(mx, ((order == CLOSING_TIME_INDEX) ? wh.close_time : wh.open_time));
+  for (WorkingHours wh : times) {
+    mx =
+        max(mx, ((order == CLOSING_TIME_INDEX) ? wh.close_time : wh.open_time));
   }
   return mx;
 }
@@ -280,20 +285,20 @@ int existence_check(vector<int> location_check, int index) {
   return -1;
 }
 
-bool cmp_by_ed(WorkingHours a, WorkingHours b){
+bool cmp_by_ed(WorkingHours a, WorkingHours b) {
   return a.close_time < b.close_time;
 }
 
-
-
 void find_next_destenation(int current_time, vector<Locations> input,
-                           vector<int> &location_check,vector < int > &start,
+                           vector<int> &location_check, vector<int> &start,
                            vector<int> &durations, TimeList times) {
   // TODO: fix this function
   int size = input.size();
   vector<int> not_suitables;
   int counter = 0;
-  while (current_time < max_element(times.begin(), times.end(), cmp_by_ed)->close_time && counter < size) {
+  while (current_time <
+             max_element(times.begin(), times.end(), cmp_by_ed)->close_time &&
+         counter < size) {
     int index = find_next_destination_index(current_time, times, input,
                                             location_check, not_suitables);
     int existence_checker = existence_check(location_check, index);
@@ -354,13 +359,13 @@ void print_output(vector<vector<string>> result) {
   }
 }
 
-string read_line(ifstream& file){
+string read_line(ifstream &file) {
   string res;
   getline(file, res);
   return res;
 }
 
-vector < string > split_by_comma(string inp){
+vector<string> split_by_comma(string inp) {
   vector<string> ans;
   string token;
   stringstream S(inp);
@@ -369,29 +374,31 @@ vector < string > split_by_comma(string inp){
   return ans;
 }
 
-vector < string > handle_first_line(ifstream& file){
+vector<string> handle_first_line(ifstream &file) {
   string first_line = read_line(file);
   return split_by_comma(first_line);
-} 
+}
 
-vector<Locations> read_from_file(string file_name, vector<Locations>& location_data, TimeList &times) {
+vector<Locations> read_from_file(string file_name,
+                                 vector<Locations> &location_data,
+                                 TimeList &times) {
   ifstream file(file_name);
   vector<string> splitted_firstline = handle_first_line(file);
-  
+
   vector<int> arrangment = arrangment_function(splitted_firstline);
   vector<string> primitive_get = read_locations_data(file_name);
   vector<vector<string>> splitted_input = split_input(primitive_get);
 
-  //reminder to delete parallel vectors
-  times = create_time_vector(splitted_input, arrangment[OPENING_TIME_INDEX], arrangment[CLOSING_TIME_INDEX]);
+  // reminder to delete parallel vectors
+  times = create_time_vector(splitted_input, arrangment[OPENING_TIME_INDEX],
+                             arrangment[CLOSING_TIME_INDEX]);
   /*
   Open_times =
       create_time_vector(splitted_input, arrangment[OPENING_TIME_INDEX]);
   Close_times =
       create_time_vector(splitted_input, arrangment[CLOSING_TIME_INDEX]);
   */
-  location_data =
-      make_locations(splitted_input, times, arrangment);
+  location_data = make_locations(splitted_input, times, arrangment);
   return location_data;
 }
 
@@ -402,10 +409,11 @@ int main(int argc, char *argv[]) {
   vector<int> durations;
   vector<Locations> location_data;
   TimeList times;
-    read_from_file(argv[FILE_NAME_ARGUMENT] + ADDITIONAL_CHAR, location_data, times);
+  read_from_file(argv[FILE_NAME_ARGUMENT] + ADDITIONAL_CHAR, location_data,
+                 times);
   find_next_destenation(START_TIME, location_data, gone_location, start_times,
                         durations, times);
-  
+
   vector<vector<string>> ready_to_print = make_vector_ready_for_print(
       location_data, gone_location, start_times, durations);
   print_output(ready_to_print);
