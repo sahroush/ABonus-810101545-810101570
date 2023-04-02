@@ -6,29 +6,22 @@ YELLOW="\e[0;33m"
 ESC="\e[0m"
 
 MAIN_BIN=main.out
-CC=g++
+CC="g++ -Wall -Wextra -fsanitize=undefined -fsanitize=address"
 ERROR="${RED}ERROR:${ESC}"
 TEST_TMP=judge_test_tmp.txt
 
-if [ $# != 1 ]; then
-    echo -e "${ERROR} Parameter missing."
-    exit
-elif [ ! -f "$1" ]; then
-    echo -e "$ERROR File not found."
-    exit
-else
-    if [ -f MAIN_BIN ]; then
-        rm MAIN_BIN
-    fi
-    
-    $CC -o $MAIN_BIN "$1"
-
-    if [ ! -f $MAIN_BIN ]; then
-        echo -e "$ERROR Compilation Error."
-        echo ;
-        exit
-    fi
+if [ -f MAIN_BIN ]; then
+    rm MAIN_BIN
 fi
+
+$CC -o $MAIN_BIN "C1.cpp"
+
+if [ ! -f $MAIN_BIN ]; then
+    echo -e "$ERROR Compilation Error."
+    echo ;
+    exit
+fi
+
 
 N=0
 TEST_CNT=$(ls -1q tests/in/ | wc -l)
