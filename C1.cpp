@@ -100,8 +100,8 @@ int get_time(string time_str) {
   return res;
 }
 
-TimeList create_time_vector(Table input_table,
-                            int starting_time_id, int finishing_time_id) {
+TimeList create_time_vector(Table input_table, int starting_time_id,
+                            int finishing_time_id) {
   TimeList result;
   int location_number = input_table.size();
   for (int i = 0; i < location_number; i++) {
@@ -111,8 +111,8 @@ TimeList create_time_vector(Table input_table,
   return result;
 }
 
-LocationList make_Location(Table input_table,
-                                 TimeList times, vector<int> title_arrangment) {
+LocationList make_Location(Table input_table, TimeList times,
+                           vector<int> title_arrangment) {
   LocationList input_structs;
   int location_count = input_table.size();
   for (int i = 0; i < location_count; i++) {
@@ -179,8 +179,7 @@ int find_best(vector<int> suitable_indexs, LocationList input) {
 }
 
 int calculate(int previous_time, int duration) {
-  if (duration >= MINUTES_OF_AN_HOUR)
-    duration = MINUTES_OF_AN_HOUR;
+  duration = min(duration, MINUTES_OF_AN_HOUR);
   return previous_time + duration + INTERVAL;
 }
 int calculate_endtime(int previous_time, int duration) {
@@ -190,8 +189,8 @@ int calculate_endtime(int previous_time, int duration) {
 }
 
 vector<int> find_open_Location(TimeList times, int current_time,
-                                vector<int> location_check,
-                                vector<int> unsuitable_indexs) {
+                               vector<int> location_check,
+                               vector<int> unsuitable_indexs) {
   vector<int> suitable_indexs;
   int count = times.size();
   for (int i = 0; i < count; i++) {
@@ -219,34 +218,37 @@ bool compare_by_open_time(WorkingHours a, WorkingHours b) {
   return a.open_time < b.open_time;
 }
 
+bool check_time(int current_time, TimeList times, int len, int counter) {
+  return current_time >=
+             min_element(times.begin(), times.end(), compare_by_open_time)
+                 ->open_time &&
+         counter < len;
+}
+
+int find_nearest_time(TimeList times, int len, int current_time) {
+  vector<int> late_opentimes;
+  for (int i = 0; i < len; i++) {
+    if (times[i].open_time > current_time)
+      late_opentimes.push_back(times[i].open_time);
+  }
+  return *min_element(late_opentimes.begin(), late_opentimes.end());
+}
+
 int find_next_destination_index(int &current_time, TimeList times,
-                                LocationList input,
-                                vector<int> location_check,
+                                LocationList input, vector<int> location_check,
                                 vector<int> unsuitable_indexs) {
   vector<int> suitable_indexs;
-  int rank, index;
-  int counter = 0;
-  int len = times.size();
+  int rank, index, counter = 0, len = times.size();
   while (true) {
-    // we stay in this while till suitable indexes is empty
     suitable_indexs.clear();
-    if (current_time >=
-            min_element(times.begin(), times.end(), compare_by_open_time)->open_time &&
-        counter < len) {
+    if (check_time(current_time, times, len, counter)) {
       suitable_indexs = find_open_Location(times, current_time, location_check,
-                                            unsuitable_indexs);
-      counter += 1;
+                                           unsuitable_indexs);
+      counter++;
     } else {
-      vector<int> late_opentimes;
-      for (int i = 0; i < len; i++) {
-        if (times[i].open_time > current_time)
-          late_opentimes.push_back(times[i].open_time);
-      }
-      int nearest_time =
-          *min_element(late_opentimes.begin(), late_opentimes.end());
-      find_suitable_indexs(input, nearest_time, location_check, suitable_indexs,
-                           unsuitable_indexs);
-      current_time = nearest_time;
+      current_time = find_nearest_time(times, len, current_time);
+      find_suitable_indexs(input, current_time, location_check, suitable_indexs,
+                       unsuitable_indexs);
     }
     if (!suitable_indexs.empty()) {
       rank = find_best(suitable_indexs, input);
@@ -288,26 +290,26 @@ bool compare_by_end_time(WorkingHours a, WorkingHours b) {
 }
 
 void process_input(int current_time, LocationList input,
-                           vector<int> &location_check, vector<int> &start,
-                           vector<int> &durations, TimeList times) {
-  int size = input.size();
+                   vector<int> &location_check, vector<int> &start,
+                   vector<int> &durations, TimeList times) {
+  int count = input.size();
   vector<int> not_suitables;
-  int counter = 0;
-  while (current_time <
-             max_element(times.begin(), times.end(), compare_by_end_time)->close_time &&
-         counter < size) {
+  for (int counter = 0; current_time < max_element(times.begin(), times.end(),
+                                                   compare_by_end_time)
+                                           ->close_time &&
+                        counter < count;
+       counter++) {
     int index = find_next_destination_index(current_time, times, input,
                                             location_check, not_suitables);
     int existence_checker = existence_check(location_check, index);
     int duration_check = check_destination_wellness(input, current_time, index);
-    if (existence_checker == (-1) && duration_check != (-1)) {
+    if (existence_checker == -1 && duration_check != -1) {
       location_check.push_back(index);
       start.push_back(current_time);
       durations.push_back(duration_check);
       current_time = calculate(current_time, duration_check);
     } else
       not_suitables.push_back(index);
-    counter += 1;
   }
 }
 string convert_int_to_clockform(int time) {
@@ -329,10 +331,8 @@ string convert_int_to_clockform(int time) {
     return hour_str + ":" + min_str;
 }
 
-Table generate_output(LocationList input,
-                                                   vector<int> &location_check,
-                                                   vector<int> &start,
-                                                   vector<int> &durations) {
+Table generate_output(LocationList input, vector<int> &location_check,
+                      vector<int> &start, vector<int> &durations) {
   Table result;
   for (int i = 0; i < (int)location_check.size(); i++) {
     int end = calculate_endtime(start[i], durations[i]);
@@ -374,9 +374,8 @@ vector<string> handle_first_line(ifstream &file) {
   return split_by_comma(first_line);
 }
 
-LocationList read_input(string file_name,
-                                 LocationList &location_data,
-                                 TimeList &times) {
+LocationList read_input(string file_name, LocationList &location_data,
+                        TimeList &times) {
   ifstream file(file_name);
   vector<string> splitted_firstline = handle_first_line(file);
 
@@ -397,10 +396,10 @@ int main(int argc, char *argv[]) {
   LocationList location_data;
   TimeList times;
   read_input(argv[FILE_NAME_ARGUMENT] + ADDITIONAL_CHAR_CNT, location_data,
-                 times);
+             times);
   process_input(START_TIME, location_data, gone_location, start_times,
-                        durations, times);
-  Table output = generate_output(
-      location_data, gone_location, start_times, durations);
+                durations, times);
+  Table output =
+      generate_output(location_data, gone_location, start_times, durations);
   print_output(output);
 }
